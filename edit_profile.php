@@ -2,13 +2,12 @@
 session_start();
 include('config.php');
 
-// Check if the user is logged in
+// Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
 
-// Fetch the user details from the database
 $user_id = $_SESSION['user_id'];
 $sql = "SELECT * FROM users WHERE id = :user_id";
 $stmt = $pdo->prepare($sql);
@@ -16,13 +15,15 @@ $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
 $stmt->execute();
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Check if user exists
 if (!$user) {
     echo "User not found.";
     exit();
 }
 
 // Handle form submission
+$errors = [];
+$success = false;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $full_name = trim($_POST['full_name']);
     $email = trim($_POST['email']);
@@ -30,14 +31,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $address = trim($_POST['address']);
     $birthday = trim($_POST['birthday']);
 
-    // Basic validation
-    $errors = [];
-    if (empty($full_name)) $errors[] = "Full name is required";
-    if (empty($email)) $errors[] = "Email is required";
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Invalid email format";
-    if (empty($phone)) $errors[] = "Phone number is required";
-    if (empty($address)) $errors[] = "Address is required";
-    if (empty($birthday)) $errors[] = "Birthday is required";
+    if (empty($full_name)) $errors[] = "Full name is required.";
+    if (empty($email)) $errors[] = "Email is required.";
+    elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Invalid email format.";
+    if (empty($phone)) $errors[] = "Phone number is required.";
+    if (empty($address)) $errors[] = "Address is required.";
+    if (empty($birthday)) $errors[] = "Birthday is required.";
 
     if (empty($errors)) {
         try {
@@ -48,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     address = :address,
                     birthday = :birthday
                     WHERE id = :user_id";
-            
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
                 ':full_name' => $full_name,
@@ -58,50 +56,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':birthday' => $birthday,
                 ':user_id' => $user_id
             ]);
-
-            // Redirect to profile page with success message
-            header('Location: profile.php?success=1');
-            exit();
+            $success = true;
+            $user = array_merge($user, $_POST);
         } catch (PDOException $e) {
             $errors[] = "Error updating profile: " . $e->getMessage();
         }
     }
 }
 ?>
-
 <!DOCTYPE html>
-<html class="scroll-smooth" lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
     </style>
 </head>
-<body class="bg-gradient-to-b from-blue-50 to-white min-h-screen flex flex-col">
-    <header class="bg-white shadow-md p-4 sticky top-0 z-30">
-        <div class="container mx-auto flex items-center justify-between">
+<body class="bg-blue-50 min-h-screen flex flex-col">
+    <header class="bg-white shadow p-4 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-semibold text-blue-700 flex items-center gap-2">
                 <i class="fas fa-user-edit text-blue-600 text-3xl"></i>
-                Edit Profile
+                Edit Your Profile
             </h1>
-            <a class="text-blue-600 hover:text-blue-800 font-medium transition flex items-center gap-1" href="profile.php">
-                <i class="fas fa-arrow-left"></i>
-                Back to Profile
+            <a href="profile.php" class="text-blue-600 hover:underline flex items-center gap-1">
+                <i class="fas fa-arrow-left"></i> Back to Profile
             </a>
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-12 flex-grow">
-        <div class="bg-white shadow-lg rounded-xl p-8 max-w-3xl mx-auto border border-blue-100">
+    <main class="container mx-auto flex-grow px-4 py-10">
+        <div class="bg-white p-8 rounded-xl shadow-lg max-w-3xl mx-auto border border-blue-100">
+            <?php if ($success): ?>
+                <div class="bg-green-100 text-green-800 border border-green-300 p-4 rounded mb-6">
+                    <i class="fas fa-check-circle mr-2"></i> Profile updated successfully!
+                </div>
+            <?php endif; ?>
+
             <?php if (!empty($errors)): ?>
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+                <div class="bg-red-100 text-red-800 border border-red-300 p-4 rounded mb-6">
                     <ul class="list-disc list-inside">
                         <?php foreach ($errors as $error): ?>
                             <li><?php echo htmlspecialchars($error); ?></li>
@@ -112,66 +112,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <form method="POST" class="space-y-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <!-- Full Name -->
                     <div class="col-span-2">
-                        <label for="full_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                        <input type="text" id="full_name" name="full_name" 
+                        <label for="full_name" class="block font-medium text-gray-700">Full Name</label>
+                        <input type="text" name="full_name" id="full_name"
                                value="<?php echo htmlspecialchars($user['full_name']); ?>"
-                               class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"/>
+                               class="w-full mt-1 border border-gray-300 rounded-md px-4 py-2 focus:ring-blue-600 focus:outline-none" required>
                     </div>
 
-                    <!-- Email -->
-                    <div class="col-span-2 sm:col-span-1">
-                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" id="email" name="email" 
+                    <div>
+                        <label for="email" class="block font-medium text-gray-700">Email</label>
+                        <input type="email" name="email" id="email"
                                value="<?php echo htmlspecialchars($user['email']); ?>"
-                               class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"/>
+                               class="w-full mt-1 border border-gray-300 rounded-md px-4 py-2 focus:ring-blue-600 focus:outline-none" required>
                     </div>
 
-                    <!-- Phone -->
-                    <div class="col-span-2 sm:col-span-1">
-                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                        <input type="tel" id="phone" name="phone" 
+                    <div>
+                        <label for="phone" class="block font-medium text-gray-700">Phone</label>
+                        <input type="tel" name="phone" id="phone"
                                value="<?php echo htmlspecialchars($user['phone']); ?>"
-                               class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"/>
+                               class="w-full mt-1 border border-gray-300 rounded-md px-4 py-2 focus:ring-blue-600 focus:outline-none" required>
                     </div>
 
-                    <!-- Address -->
                     <div class="col-span-2">
-                        <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                        <textarea id="address" name="address" rows="3"
-                                  class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"><?php echo htmlspecialchars($user['address']); ?></textarea>
+                        <label for="address" class="block font-medium text-gray-700">Address</label>
+                        <textarea name="address" id="address" rows="3"
+                                  class="w-full mt-1 border border-gray-300 rounded-md px-4 py-2 focus:ring-blue-600 focus:outline-none" required><?php echo htmlspecialchars($user['address']); ?></textarea>
                     </div>
 
-                    <!-- Birthday -->
-                    <div class="col-span-2 sm:col-span-1">
-                        <label for="birthday" class="block text-sm font-medium text-gray-700 mb-1">Birthday</label>
-                        <input type="date" id="birthday" name="birthday" 
+                    <div>
+                        <label for="birthday" class="block font-medium text-gray-700">Birthday</label>
+                        <input type="date" name="birthday" id="birthday"
                                value="<?php echo htmlspecialchars($user['birthday']); ?>"
-                               class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"/>
+                               class="w-full mt-1 border border-gray-300 rounded-md px-4 py-2 focus:ring-blue-600 focus:outline-none" required>
                     </div>
                 </div>
 
-                <div class="flex flex-col sm:flex-row justify-end gap-4 mt-8">
-                    <a href="profile.php" 
-                       class="bg-gray-500 text-white px-8 py-3 rounded-md font-semibold hover:bg-gray-600 transition flex items-center justify-center gap-2">
-                        <i class="fas fa-times"></i>
-                        Cancel
+                <div class="flex justify-end gap-4 pt-6">
+                    <a href="profile.php"
+                       class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md font-semibold flex items-center gap-2">
+                        <i class="fas fa-times"></i> Cancel
                     </a>
-                    <button type="submit" 
-                            class="bg-blue-600 text-white px-8 py-3 rounded-md font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2">
-                        <i class="fas fa-save"></i>
-                        Save Changes
+                    <button type="submit"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-semibold flex items-center gap-2">
+                        <i class="fas fa-save"></i> Save Changes
                     </button>
                 </div>
             </form>
         </div>
     </main>
 
-    <footer class="bg-white border-t border-blue-100 py-6 mt-auto">
-        <div class="container mx-auto text-center text-gray-500 text-sm select-none">
-            © <?php echo date('Y'); ?> Your Company. All rights reserved.
-        </div>
+    <footer class="bg-white border-t mt-auto py-6 text-center text-sm text-gray-500">
+        &copy; <?php echo date('Y'); ?> Your Company. All rights reserved.
     </footer>
 </body>
 </html>

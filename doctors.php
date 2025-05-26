@@ -80,59 +80,60 @@ $is_logged_in = isset($_SESSION['user_id']);
   </header>
 
   <!-- Doctor Section -->
-  <section class="mt-12 mb-16 px-4 sm:px-6 lg:px-8" id="doctors">
-    <h3 class="text-3xl font-bold text-teal-600 mb-10 text-center fade-in">Meet Our Doctors</h3>
-    
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-      <!-- Doctor Card: Dr. Alexa -->
-      <div class="doctor-card p-6 text-center fade-in">
-        <img src="Images/alexa.png" alt="Dr. Alexa" class="doctor-img w-full h-64 object-cover rounded-lg mb-4">
-        <h4 class="text-xl font-semibold text-gray-800">Dr. Alexa</h4>
-        <p class="text-teal-600 font-medium">Cardiologist</p>
-        <p class="text-gray-600 mt-2 text-base">Expert in heart health and cardiovascular diseases with 15 years of experience.</p>
-        <div class="mt-4 text-sm text-left">
-          <p class="font-semibold text-gray-700">Available Times:</p>
-          <ul class="list-disc list-inside text-gray-600 space-y-1">
-            <li>Mon, Wed, Fri – 9:00 AM to 11:00 AM</li>
-            <li>Tue, Thu – 2:00 PM to 4:00 PM</li>
-          </ul>
-        </div>
-        <a href="<?php echo $is_logged_in ? 'appointment.php?doctor=Dr.+Alexa+-+Cardiologist' : 'login.php'; ?>" class="btn-book inline-block mt-4 text-white px-6 py-2 rounded-lg font-medium">Book Appointment</a>
+  <!-- Doctor Section -->
+<section class="mt-12 mb-16 px-4 sm:px-6 lg:px-8" id="doctors">
+  <h3 class="text-3xl font-bold text-teal-600 mb-10 text-center fade-in">Meet Our Doctors</h3>
+  
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+    <!-- Doctor Card: Dr. Alexa -->
+    <div class="doctor-card p-6 text-center fade-in">
+      <img src="Images/alexa.png" alt="Dr. Alexa" class="doctor-img w-full h-64 object-cover rounded-lg mb-4">
+      <h4 class="text-xl font-semibold text-gray-800">Dr. Alexa</h4>
+      <p class="text-teal-600 font-medium">Cardiologist</p>
+      <p class="text-gray-600 mt-2 text-base">Expert in heart health and cardiovascular diseases with 15 years of experience.</p>
+      <div class="mt-4 text-sm text-left">
+        <p class="font-semibold text-gray-700">Available Times:</p>
+        <ul class="list-disc list-inside text-gray-600 space-y-1">
+          <li>Mon, Wed, Fri – 9:00 AM to 11:00 AM</li>
+          <li>Tue, Thu – 2:00 PM to 4:00 PM</li>
+        </ul>
       </div>
-
-      <!-- Doctor Card: Dr. Thea -->
-      <div class="doctor-card p-6 text-center fade-in">
-        <img src="Images/Thea.png" alt="Dr. Thea" class="doctor-img w-full h-64 object-cover rounded-lg mb-4">
-        <h4 class="text-xl font-semibold text-gray-800">Dr. Thea</h4>
-        <p class="text-teal-600 font-medium">Pediatrician</p>
-        <p class="text-gray-600 mt-2 text-base">Caring for children’s health and wellness with a gentle approach.</p>
-        <div class="mt-4 text-sm text-left">
-          <p class="font-semibold text-gray-700">Available Times:</p>
-          <ul class="list-disc list-inside text-gray-600 space-y-1">
-            <li>Mon – Fri – 10:00 AM to 12:00 PM</li>
-            <li>Sat – 9:00 AM to 11:00 AM</li>
-          </ul>
-        </div>
-        <a href="<?php echo $is_logged_in ? 'appointment.php?doctor=Dr.+Thea+-+Pediatrician' : 'login.php'; ?>" class="btn-book inline-block mt-4 text-white px-6 py-2 rounded-lg font-medium">Book Appointment</a>
-      </div>
-
-      <!-- Doctor Card: Dr. Renelyn -->
-      <div class="doctor-card p-6 text-center fade-in">
-        <img src="Images/Renelyn.png" alt="Dr. Renelyn" class="doctor-img w-full h-64 object-cover rounded-lg mb-4">
-        <h4 class="text-xl font-semibold text-gray-800">Dr. Renelyn</h4>
-        <p class="text-teal-600 font-medium">Dermatologist</p>
-        <p class="text-gray-600 mt-2 text-base">Specialist in skin care and treatment of skin conditions.</p>
-        <div class="mt-4 text-sm text-left">
-          <p class="font-semibold text-gray-700">Available Times:</p>
-          <ul class="list-disc list-inside text-gray-600 space-y-1">
-            <li>Tue, Thu – 11:00 AM to 1:00 PM</li>
-            <li>Sat – 1:00 PM to 3:00 PM</li>
-          </ul>
-        </div>
-        <a href="<?php echo $is_logged_in ? 'appointment.php?doctor=Dr.+Renelyn+-+Dermatologist' : 'login.php'; ?>" class="btn-book inline-block mt-4 text-white px-6 py-2 rounded-lg font-medium">Book Appointment</a>
-      </div>
+      <a href="<?php echo $is_logged_in ? 'view_profile.php?doctor=Dr.+Alexa&specialty=Cardiologist' : 'login.php'; ?>" class="btn-book inline-block mt-4 text-white px-6 py-2 rounded-lg font-medium">View Profile</a>
     </div>
-  </section>
+
+    <!-- Doctor Card: Dr. Thea -->
+    <div class="doctor-card p-6 text-center fade-in">
+      <img src="Images/Thea.png" alt="Dr. Thea" class="doctor-img w-full h-64 object-cover rounded-lg mb-4">
+      <h4 class="text-xl font-semibold text-gray-800">Dr. Thea</h4>
+      <p class="text-teal-600 font-medium">Pediatrician</p>
+      <p class="text-gray-600 mt-2 text-base">Caring for children’s health and wellness with a gentle approach.</p>
+      <div class="mt-4 text-sm text-left">
+        <p class="font-semibold text-gray-700">Available Times:</p>
+        <ul class="list-disc list-inside text-gray-600 space-y-1">
+          <li>Mon – Fri – 10:00 AM to 12:00 PM</li>
+          <li>Sat – 9:00 AM to 11:00 AM</li>
+        </ul>
+      </div>
+      <a href="<?php echo $is_logged_in ? 'view_profile.php?doctor=Dr.+Thea&specialty=Pediatrician' : 'login.php'; ?>" class="btn-book inline-block mt-4 text-white px-6 py-2 rounded-lg font-medium">View Profile</a>
+    </div>
+
+    <!-- Doctor Card: Dr. Renelyn -->
+    <div class="doctor-card p-6 text-center fade-in">
+      <img src="Images/Renelyn.png" alt="Dr. Renelyn" class="doctor-img w-full h-64 object-cover rounded-lg mb-4">
+      <h4 class="text-xl font-semibold text-gray-800">Dr. Renelyn</h4>
+      <p class="text-teal-600 font-medium">Dermatologist</p>
+      <p class="text-gray-600 mt-2 text-base">Specialist in skin care and treatment of skin conditions.</p>
+      <div class="mt-4 text-sm text-left">
+        <p class="font-semibold text-gray-700">Available Times:</p>
+        <ul class="list-disc list-inside text-gray-600 space-y-1">
+          <li>Tue, Thu – 11:00 AM to 1:00 PM</li>
+          <li>Sat – 1:00 PM to 3:00 PM</li>
+        </ul>
+      </div>
+      <a href="<?php echo $is_logged_in ? 'view_profile.php?doctor=Dr.+Renelyn&specialty=Dermatologist' : 'login.php'; ?>" class="btn-book inline-block mt-4 text-white px-6 py-2 rounded-lg font-medium">View Profile</a>
+    </div>
+  </div>
+</section>
 
   <!-- Footer -->
   <footer class="bg-teal-800 text-white py-8">

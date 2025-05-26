@@ -34,7 +34,7 @@ try {
 }
 
 // Split appointments into Done and Upcoming
-$current_timestamp = strtotime('2025-05-24 22:28:00'); // Current date and time: 10:28 PM PST, May 24, 2025
+$current_timestamp = strtotime('2025-05-26 15:29:00'); // Current date and time: 3:29 PM PST, May 26, 2025
 $done_appointments = [];
 $upcoming_appointments = [];
 
@@ -61,11 +61,11 @@ foreach ($upcoming_appointments as $appt) {
     $grouped_upcoming_appointments[$date][] = $appt;
 }
 
-// Count Approved and Rejected Appointments
+// Count Approved and Declined Appointments
 $approved_appointments = array_filter($appointments, function($apt) {
     return $apt['is_approved'] == 2;
 });
-$rejected_appointments = array_filter($appointments, function($apt) {
+$declined_appointments = array_filter($appointments, function($apt) {
     return $apt['is_approved'] == 3;
 });
 ?>
@@ -130,7 +130,7 @@ $rejected_appointments = array_filter($appointments, function($apt) {
         <!-- Welcome Section -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
             <h1 class="text-2xl font-bold text-gray-800 mb-2">Welcome, <?php echo htmlspecialchars($doctor['full_name']); ?>!</h1>
-            <p class="text-gray-600">Here's an overview of your appointments and schedule.</p>
+            <p class="text-gray-600">Here's an overview of my appointments and schedule.</p>
         </div>
 
         <!-- Quick Stats -->
@@ -174,8 +174,8 @@ $rejected_appointments = array_filter($appointments, function($apt) {
                         <i class="fas fa-times-circle text-2xl"></i>
                     </div>
                     <div class="ml-4">
-                        <h2 class="text-gray-600 text-sm">Rejected Appointments</h2>
-                        <p class="text-2xl font-semibold text-gray-800"><?php echo count($rejected_appointments); ?></p>
+                        <h2 class="text-gray-600 text-sm">Declined Appointments</h2>
+                        <p class="text-2xl font-semibold text-gray-800"><?php echo count($declined_appointments); ?></p>
                     </div>
                 </div>
             </div>
@@ -185,7 +185,7 @@ $rejected_appointments = array_filter($appointments, function($apt) {
         <div class="space-y-6">
             <!-- Upcoming Appointments -->
             <div class="bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Upcoming Appointments</h2>
+                <h2 class="text-xl font-bold text-gray-800 mb-4">My Upcoming Appointments</h2>
                 <?php if (empty($upcoming_appointments)): ?>
                     <p class="text-gray-500 text-center py-4">No upcoming appointments</p>
                 <?php else: ?>
@@ -217,10 +217,13 @@ $rejected_appointments = array_filter($appointments, function($apt) {
                                                         $status_text = 'Approved';
                                                     } elseif ($appointment['is_approved'] == 3) {
                                                         $status_color = 'text-red-600';
-                                                        $status_text = 'Rejected';
+                                                        $status_text = 'Declined';
                                                     }
                                                     ?>
                                                     <p class="text-sm <?php echo $status_color; ?> font-medium"><?php echo $status_text; ?></p>
+                                                    <?php if ($appointment['is_approved'] == 3 && !empty($appointment['decline_reason'])): ?>
+                                                        <p class="text-sm text-gray-500 italic">Reason: <?php echo htmlspecialchars($appointment['decline_reason']); ?></p>
+                                                    <?php endif; ?>
                                                 </div>
                                                 <div class="text-right">
                                                     <p class="text-blue-600 font-medium"><?php echo htmlspecialchars($appointment['email']); ?></p>
@@ -231,9 +234,9 @@ $rejected_appointments = array_filter($appointments, function($apt) {
                                                                     class="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition">
                                                                 Approve
                                                             </button>
-                                                            <button onclick="event.stopPropagation(); updateAppointmentStatus(<?php echo $appointment['id']; ?>, 3)" 
+                                                            <button onclick="event.stopPropagation(); declineAppointment(<?php echo $appointment['id']; ?>)" 
                                                                     class="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition">
-                                                                Reject
+                                                                Decline
                                                             </button>
                                                         </div>
                                                     <?php endif; ?>
@@ -250,7 +253,7 @@ $rejected_appointments = array_filter($appointments, function($apt) {
 
             <!-- Done Appointments -->
             <div class="bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Done Appointments</h2>
+                <h2 class="text-xl font-bold text-gray-800 mb-4">My Done Appointments</h2>
                 <?php if (empty($done_appointments)): ?>
                     <p class="text-gray-500 text-center py-4">No past appointments</p>
                 <?php else: ?>
@@ -282,10 +285,13 @@ $rejected_appointments = array_filter($appointments, function($apt) {
                                                         $status_text = 'Approved';
                                                     } elseif ($appointment['is_approved'] == 3) {
                                                         $status_color = 'text-red-600';
-                                                        $status_text = 'Rejected';
+                                                        $status_text = 'Declined';
                                                     }
                                                     ?>
                                                     <p class="text-sm <?php echo $status_color; ?> font-medium"><?php echo $status_text; ?></p>
+                                                    <?php if ($appointment['is_approved'] == 3 && !empty($appointment['decline_reason'])): ?>
+                                                        <p class="text-sm text-gray-500 italic">Reason: <?php echo htmlspecialchars($appointment['decline_reason']); ?></p>
+                                                    <?php endif; ?>
                                                 </div>
                                                 <div class="text-right">
                                                     <p class="text-blue-600 font-medium"><?php echo htmlspecialchars($appointment['email']); ?></p>
@@ -363,6 +369,12 @@ $rejected_appointments = array_filter($appointments, function($apt) {
                             <p class="text-sm text-gray-600">${patient.message.replace(/\n/g, '<br>')}</p>
                         </div>
                     ` : ''}
+                    ${patient.decline_reason ? `
+                        <div class="mt-3 pt-3 border-t">
+                            <p class="font-semibold">Decline Reason:</p>
+                            <p class="text-sm text-gray-600">${patient.decline_reason.replace(/\n/g, '<br>')}</p>
+                        </div>
+                    ` : ''}
                 `;
                 modal.classList.add('active');
             });
@@ -379,7 +391,7 @@ $rejected_appointments = array_filter($appointments, function($apt) {
         });
 
         function updateAppointmentStatus(appointmentId, status) {
-            const action = status === 2 ? 'approve' : 'reject';
+            const action = status === 2 ? 'approve' : 'decline';
             const actionColor = status === 2 ? '#10B981' : '#EF4444';
             
             Swal.fire({
@@ -442,8 +454,84 @@ $rejected_appointments = array_filter($appointments, function($apt) {
                 }
             });
         }
+
+        function declineAppointment(appointmentId) {
+            Swal.fire({
+                title: 'Decline Appointment',
+                html: `
+                    <p class="text-gray-600 mb-4">Please provide a reason for declining this appointment:</p>
+                    <textarea id="declineReason" class="w-full p-2 border rounded-lg" rows="4" placeholder="Enter reason for declining"></textarea>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Decline Appointment',
+                cancelButtonText: 'Cancel',
+                preConfirm: () => {
+                    const reason = document.getElementById('declineReason').value;
+                    if (!reason.trim()) {
+                        Swal.showValidationMessage('Please provide a reason for declining');
+                        return false;
+                    }
+                    return reason;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading state
+                    Swal.fire({
+                        title: 'Processing...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    const formData = new FormData();
+                    formData.append('id', appointmentId);
+                    formData.append('status', 3);
+                    formData.append('decline_reason', result.value);
+
+                    fetch('update_appointment_status.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Appointment has been declined successfully.',
+                                icon: 'success',
+                                confirmButtonColor: '#EF4444'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: data.message || 'Unknown error occurred',
+                                icon: 'error',
+                                confirmButtonColor: '#EF4444'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Failed to update appointment status',
+                            icon: 'error',
+                            confirmButtonColor: '#EF4444'
+                        });
+                    });
+                }
+            });
+        }
     </script>
 </body>
 </html>
 <?php
 // Close the database connection
+$pdo = null;
+?>
