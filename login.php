@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (password_verify($password, $user['password'])) {
                 // Store user session
                 $_SESSION['user_id'] = $user['id'];
+                $_SESSION['email'] = $email;
                 $_SESSION['full_name'] = $user['full_name'];
                 $_SESSION['role'] = $user['role'];
 
@@ -37,8 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: admin_dashboard.php');
                 } else if ($user['role'] == 2) { // Doctor
                     header('Location: doctor_dashboard.php');
-                } else { // Regular user
-                    header('Location: profile.php');
+                } else { // Patient
+                    header('Location: patient-dashboard.php');
                 }
                 exit();
             } else {

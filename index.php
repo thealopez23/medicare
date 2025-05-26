@@ -12,7 +12,7 @@ function getDashboardLink() {
     } else if ($role == 2) {
         return 'doctor_dashboard.php';
     } else if ($role == 3) {
-        return 'profile.php';
+        return 'patient-dashboard.php';
     }
     return 'index.php';
 }

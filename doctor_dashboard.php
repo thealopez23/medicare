@@ -10,26 +10,31 @@ if (!isset($_SESSION['user_id'])) {
 
 // Get doctor's information
 $user_id = $_SESSION['user_id'];
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id = :user_id AND role = 2");
-$stmt->execute([':user_id' => $user_id]);
-$doctor = $stmt->fetch();
+try {
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :user_id AND role = 2");
+    $stmt->execute([':user_id' => $user_id]);
+    $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$doctor) {
-    header('Location: index.php');
+    if (!$doctor) {
+        header('Location: index.php');
+        exit();
+    }
+
+    // Get doctor's appointments
+    $stmt = $pdo->prepare("
+        SELECT * FROM appointments 
+        WHERE doctor = :doctor_name 
+        ORDER BY date ASC, time ASC
+    ");
+    $stmt->execute([':doctor_name' => $doctor['full_name']]);
+    $appointments = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: []; // Ensure $appointments is an array
+} catch (PDOException $e) {
+    echo "Database Error: " . $e->getMessage();
     exit();
 }
 
-// Get doctor's appointments
-$stmt = $pdo->prepare("
-    SELECT * FROM appointments 
-    WHERE doctor = :doctor_name 
-    ORDER BY date ASC, time ASC
-");
-$stmt->execute([':doctor_name' => $doctor['full_name']]);
-$appointments = $stmt->fetchAll();
-
 // Split appointments into Done and Upcoming
-$current_timestamp = strtotime('2025-05-18 20:57:00'); // 08:57 PM PST, May 18, 2025
+$current_timestamp = strtotime('2025-05-24 22:28:00'); // Current date and time: 10:28 PM PST, May 24, 2025
 $done_appointments = [];
 $upcoming_appointments = [];
 
@@ -56,32 +61,13 @@ foreach ($upcoming_appointments as $appt) {
     $grouped_upcoming_appointments[$date][] = $appt;
 }
 
-// Define available time slots and color for the profile (hardcoded for now)
-$doctor_name = $doctor['full_name'];
-$availability = [];
-$profile_color = 'bg-gray-500'; // Default color
-
-if ($doctor_name === "Dr. Alexa - Cardiologist") {
-    $availability = [
-        'Mon, Wed, Fri – 9:00 AM to 12:00 PM (May 19, 21, 23, 2025)',
-        'Tue, Thu – 2:00 PM to 5:00 PM (May 20, 22, 2025)'
-    ];
-    $profile_color = 'bg-blue-500';
-} elseif ($doctor_name === "Dr. Thea - Pediatrician") {
-    $availability = [
-        'Mon – Fri – 10:00 AM to 1:00 PM (May 19–23, 2025)',
-        'Sat – 9:00 AM to 12:00 PM (May 24, 2025)'
-    ];
-    $profile_color = 'bg-green-500';
-} elseif ($doctor_name === "Dr. Renelyn - Dermatologist") {
-    $availability = [
-        'Tue, Thu – 11:00 AM to 2:00 PM (May 20, 22, 2025)',
-        'Sat – 1:00 PM to 4:00 PM (May 24, 2025)'
-    ];
-    $profile_color = 'bg-purple-500';
-} else {
-    $availability = ['No availability set'];
-}
+// Count Approved and Rejected Appointments
+$approved_appointments = array_filter($appointments, function($apt) {
+    return $apt['is_approved'] == 2;
+});
+$rejected_appointments = array_filter($appointments, function($apt) {
+    return $apt['is_approved'] == 3;
+});
 ?>
 
 <!DOCTYPE html>
@@ -93,6 +79,7 @@ if ($doctor_name === "Dr. Alexa - Cardiologist") {
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -110,141 +97,208 @@ if ($doctor_name === "Dr. Alexa - Cardiologist") {
         .calendar-day:hover {
             background-color: #e6f3ff;
         }
-        .profile-circle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .dashboard-card {
+            transition: transform 0.3s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
         }
     </style>
 </head>
 <body class="bg-gray-100">
-    <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-10">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-blue-600">Doctor Dashboard</h1>
-                <div class="flex items-center space-x-6">
-                    <span class="text-gray-700 font-medium">Dr. <?php echo htmlspecialchars(explode(' ', $doctor['full_name'])[1]); ?></span>
-                    <a href="logout.php" class="text-red-500 hover:text-red-700 transition">
-                        <i class="fas fa-sign-out-alt mr-1"></i> Logout
+    <!-- Top Navigation Bar -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <img src="Images/Logo.png" alt="Logo" class="h-8 w-8 mr-2">
+                    <span class="text-xl font-semibold text-gray-800">Healthcare Portal</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="doctor-profile.php" class="text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-user-edit mr-2"></i>View Profile
+                    </a>
+                    <a href="logout.php" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </a>
                 </div>
             </div>
         </div>
-    </header>
+    </nav>
 
     <main class="container mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <!-- Doctor Profile Card -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24">
-                    <div class="text-center mb-6">
-                        <div class="w-24 h-24 mx-auto rounded-full <?php echo $profile_color; ?> flex items-center justify-center mb-4 profile-circle">
-                            <i class="fas fa-user-md text-4xl text-white"></i>
-                        </div>
-                        <h2 class="text-xl font-bold text-gray-800"><?php echo htmlspecialchars($doctor['full_name']); ?></h2>
-                        <p class="text-blue-600 text-sm"><?php echo htmlspecialchars(explode(' - ', $doctor['full_name'])[1]); ?></p>
-                        <div class="mt-4 text-left">
-                            <p class="text-sm font-semibold text-gray-700">Available Times:</p>
-                            <ul class="list-disc list-inside text-sm text-gray-600">
-                                <?php foreach ($availability as $slot): ?>
-                                    <li><?php echo htmlspecialchars($slot); ?></li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
+        <!-- Welcome Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Welcome, <?php echo htmlspecialchars($doctor['full_name']); ?>!</h1>
+            <p class="text-gray-600">Here's an overview of your appointments and schedule.</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6 dashboard-card">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                        <i class="fas fa-calendar-check text-2xl"></i>
                     </div>
-                    <div class="space-y-3">
-                        <div class="flex items-center text-gray-600">
-                            <i class="fas fa-envelope w-5 text-blue-500"></i>
-                            <span class="ml-2 text-sm"><?php echo htmlspecialchars($doctor['email']); ?></span>
-                        </div>
-                        <div class="flex items-center text-gray-600">
-                            <i class="fas fa-phone w-5 text-blue-500"></i>
-                            <span class="ml-2 text-sm"><?php echo htmlspecialchars($doctor['phone']); ?></span>
-                        </div>
+                    <div class="ml-4">
+                        <h2 class="text-gray-600 text-sm">Upcoming Appointments</h2>
+                        <p class="text-2xl font-semibold text-gray-800"><?php echo count($upcoming_appointments); ?></p>
                     </div>
                 </div>
             </div>
+            <div class="bg-white rounded-lg shadow-md p-6 dashboard-card">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <i class="fas fa-check-circle text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h2 class="text-gray-600 text-sm">Done Appointments</h2>
+                        <p class="text-2xl font-semibold text-gray-800"><?php echo count($done_appointments); ?></p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6 dashboard-card">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <i class="fas fa-check-double text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h2 class="text-gray-600 text-sm">Approved Appointments</h2>
+                        <p class="text-2xl font-semibold text-gray-800"><?php echo count($approved_appointments); ?></p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6 dashboard-card">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-red-100 text-red-600">
+                        <i class="fas fa-times-circle text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h2 class="text-gray-600 text-sm">Rejected Appointments</h2>
+                        <p class="text-2xl font-semibold text-gray-800"><?php echo count($rejected_appointments); ?></p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            <!-- Appointments Section -->
-            <div class="lg:col-span-3 space-y-6">
-                <!-- Upcoming Appointments -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Upcoming Appointments</h2>
-                    <?php if (empty($upcoming_appointments)): ?>
-                        <p class="text-gray-500 text-center py-4">No upcoming appointments</p>
-                    <?php else: ?>
-                        <div class="space-y-4">
-                            <?php foreach ($grouped_upcoming_appointments as $date => $appts): ?>
-                                <div class="border-b pb-4 mb-4">
-                                    <h3 class="text-lg font-semibold text-gray-700"><?php echo date('F j, Y', strtotime($date)); ?></h3>
-                                    <div class="mt-3 space-y-3">
-                                        <?php foreach ($appts as $appointment): ?>
-                                            <?php
-                                            $appt_datetime = strtotime($appointment['date'] . ' ' . $appointment['time']);
-                                            $status = $appt_datetime <= $current_timestamp ? 'Done' : 'Upcoming';
-                                            $status_color = $status === 'Done' ? 'text-green-600' : 'text-blue-600';
-                                            ?>
-                                            <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition appointment-card" 
-                                                 data-patient='<?php echo json_encode($appointment); ?>'>
-                                                <div class="flex justify-between items-center">
-                                                    <div>
-                                                        <h4 class="font-semibold text-gray-800"><?php echo htmlspecialchars($appointment['fullName']); ?></h4>
-                                                        <p class="text-sm text-gray-600"><?php echo date('g:i A', strtotime($appointment['time'])); ?></p>
-                                                        <p class="text-sm <?php echo $status_color; ?> font-medium"><?php echo $status; ?></p>
-                                                    </div>
-                                                    <div class="text-right">
-                                                        <p class="text-blue-600 font-medium"><?php echo htmlspecialchars($appointment['email']); ?></p>
-                                                        <p class="text-sm text-gray-500">Booked: <?php echo date('M j, Y', strtotime($appointment['created_at'])); ?></p>
-                                                    </div>
+        <!-- Appointments Section -->
+        <div class="space-y-6">
+            <!-- Upcoming Appointments -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Upcoming Appointments</h2>
+                <?php if (empty($upcoming_appointments)): ?>
+                    <p class="text-gray-500 text-center py-4">No upcoming appointments</p>
+                <?php else: ?>
+                    <div class="space-y-4">
+                        <?php foreach ($grouped_upcoming_appointments as $date => $appts): ?>
+                            <div class="border-b pb-4 mb-4">
+                                <h3 class="text-lg font-semibold text-gray-700"><?php echo date('F j, Y', strtotime($date)); ?></h3>
+                                <div class="mt-3 space-y-3">
+                                    <?php foreach ($appts as $appointment): ?>
+                                        <?php
+                                        $appt_datetime = strtotime($appointment['date'] . ' ' . $appointment['time']);
+                                        $status = $appt_datetime <= $current_timestamp ? 'Done' : 'Upcoming';
+                                        $status_color = $status === 'Done' ? 'text-green-600' : 'text-blue-600';
+                                        ?>
+                                        <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition appointment-card" 
+                                             data-patient='<?php echo json_encode($appointment); ?>'>
+                                            <div class="flex justify-between items-center">
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-800"><?php echo htmlspecialchars($appointment['fullName']); ?></h4>
+                                                    <p class="text-sm text-gray-600"><?php echo date('g:i A', strtotime($appointment['time'])); ?></p>
+                                                    <?php
+                                                    $status_color = '';
+                                                    $status_text = '';
+                                                    if ($appointment['is_approved'] == 1) {
+                                                        $status_color = 'text-yellow-600';
+                                                        $status_text = 'Pending';
+                                                    } elseif ($appointment['is_approved'] == 2) {
+                                                        $status_color = 'text-green-600';
+                                                        $status_text = 'Approved';
+                                                    } elseif ($appointment['is_approved'] == 3) {
+                                                        $status_color = 'text-red-600';
+                                                        $status_text = 'Rejected';
+                                                    }
+                                                    ?>
+                                                    <p class="text-sm <?php echo $status_color; ?> font-medium"><?php echo $status_text; ?></p>
+                                                </div>
+                                                <div class="text-right">
+                                                    <p class="text-blue-600 font-medium"><?php echo htmlspecialchars($appointment['email']); ?></p>
+                                                    <p class="text-sm text-gray-500">Booked: <?php echo date('M j, Y', strtotime($appointment['created_at'])); ?></p>
+                                                    <?php if ($appointment['is_approved'] == 1): ?>
+                                                        <div class="mt-2 space-x-2">
+                                                            <button onclick="event.stopPropagation(); updateAppointmentStatus(<?php echo $appointment['id']; ?>, 2)" 
+                                                                    class="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition">
+                                                                Approve
+                                                            </button>
+                                                            <button onclick="event.stopPropagation(); updateAppointmentStatus(<?php echo $appointment['id']; ?>, 3)" 
+                                                                    class="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition">
+                                                                Reject
+                                                            </button>
+                                                        </div>
+                                                    <?php endif; ?>
                                                 </div>
                                             </div>
-                                        <?php endforeach; ?>
-                                    </div>
+                                        </div>
+                                    <?php endforeach; ?>
                                 </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
 
-                <!-- Done Appointments -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Done Appointments</h2>
-                    <?php if (empty($done_appointments)): ?>
-                        <p class="text-gray-500 text-center py-4">No past appointments</p>
-                    <?php else: ?>
-                        <div class="space-y-4">
-                            <?php foreach ($grouped_done_appointments as $date => $appts): ?>
-                                <div class="border-b pb-4 mb-4">
-                                    <h3 class="text-lg font-semibold text-gray-700"><?php echo date('F j, Y', strtotime($date)); ?></h3>
-                                    <div class="mt-3 space-y-3">
-                                        <?php foreach ($appts as $appointment): ?>
-                                            <?php
-                                            $appt_datetime = strtotime($appointment['date'] . ' ' . $appointment['time']);
-                                            $status = $appt_datetime <= $current_timestamp ? 'Done' : 'Upcoming';
-                                            $status_color = $status === 'Done' ? 'text-green-600' : 'text-blue-600';
-                                            ?>
-                                            <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition appointment-card" 
-                                                 data-patient='<?php echo json_encode($appointment); ?>'>
-                                                <div class="flex justify-between items-center">
-                                                    <div>
-                                                        <h4 class="font-semibold text-gray-800"><?php echo htmlspecialchars($appointment['fullName']); ?></h4>
-                                                        <p class="text-sm text-gray-600"><?php echo date('g:i A', strtotime($appointment['time'])); ?></p>
-                                                        <p class="text-sm <?php echo $status_color; ?> font-medium"><?php echo $status; ?></p>
-                                                    </div>
-                                                    <div class="text-right">
-                                                        <p class="text-blue-600 font-medium"><?php echo htmlspecialchars($appointment['email']); ?></p>
-                                                        <p class="text-sm text-gray-500">Booked: <?php echo date('M j, Y', strtotime($appointment['created_at'])); ?></p>
-                                                    </div>
+            <!-- Done Appointments -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Done Appointments</h2>
+                <?php if (empty($done_appointments)): ?>
+                    <p class="text-gray-500 text-center py-4">No past appointments</p>
+                <?php else: ?>
+                    <div class="space-y-4">
+                        <?php foreach ($grouped_done_appointments as $date => $appts): ?>
+                            <div class="border-b pb-4 mb-4">
+                                <h3 class="text-lg font-semibold text-gray-700"><?php echo date('F j, Y', strtotime($date)); ?></h3>
+                                <div class="mt-3 space-y-3">
+                                    <?php foreach ($appts as $appointment): ?>
+                                        <?php
+                                        $appt_datetime = strtotime($appointment['date'] . ' ' . $appointment['time']);
+                                        $status = $appt_datetime <= $current_timestamp ? 'Done' : 'Upcoming';
+                                        $status_color = $status === 'Done' ? 'text-green-600' : 'text-blue-600';
+                                        ?>
+                                        <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition appointment-card" 
+                                             data-patient='<?php echo json_encode($appointment); ?>'>
+                                            <div class="flex justify-between items-center">
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-800"><?php echo htmlspecialchars($appointment['fullName']); ?></h4>
+                                                    <p class="text-sm text-gray-600"><?php echo date('g:i A', strtotime($appointment['time'])); ?></p>
+                                                    <?php
+                                                    $status_color = '';
+                                                    $status_text = '';
+                                                    if ($appointment['is_approved'] == 1) {
+                                                        $status_color = 'text-yellow-600';
+                                                        $status_text = 'Pending';
+                                                    } elseif ($appointment['is_approved'] == 2) {
+                                                        $status_color = 'text-green-600';
+                                                        $status_text = 'Approved';
+                                                    } elseif ($appointment['is_approved'] == 3) {
+                                                        $status_color = 'text-red-600';
+                                                        $status_text = 'Rejected';
+                                                    }
+                                                    ?>
+                                                    <p class="text-sm <?php echo $status_color; ?> font-medium"><?php echo $status_text; ?></p>
+                                                </div>
+                                                <div class="text-right">
+                                                    <p class="text-blue-600 font-medium"><?php echo htmlspecialchars($appointment['email']); ?></p>
+                                                    <p class="text-sm text-gray-500">Booked: <?php echo date('M j, Y', strtotime($appointment['created_at'])); ?></p>
                                                 </div>
                                             </div>
-                                        <?php endforeach; ?>
-                                    </div>
+                                        </div>
+                                    <?php endforeach; ?>
                                 </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </main>
@@ -323,6 +377,73 @@ if ($doctor_name === "Dr. Alexa - Cardiologist") {
                 modal.classList.remove('active');
             }
         });
+
+        function updateAppointmentStatus(appointmentId, status) {
+            const action = status === 2 ? 'approve' : 'reject';
+            const actionColor = status === 2 ? '#10B981' : '#EF4444';
+            
+            Swal.fire({
+                title: `Are you sure you want to ${action} this appointment?`,
+                text: "This action cannot be undone!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: actionColor,
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: `Yes, ${action} it!`,
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading state
+                    Swal.fire({
+                        title: 'Processing...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    const formData = new FormData();
+                    formData.append('id', appointmentId);
+                    formData.append('status', status);
+
+                    fetch('update_appointment_status.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: `Appointment has been ${action}d successfully.`,
+                                icon: 'success',
+                                confirmButtonColor: actionColor
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: data.message || 'Unknown error occurred',
+                                icon: 'error',
+                                confirmButtonColor: actionColor
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Failed to update appointment status',
+                            icon: 'error',
+                            confirmButtonColor: actionColor
+                        });
+                    });
+                }
+            });
+        }
     </script>
 </body>
 </html>
+<?php
+// Close the database connection

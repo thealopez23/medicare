@@ -23,9 +23,9 @@ if (!$user || $user['role'] != 3) {
 // Clear form data if it was submitted
 if (isset($_SESSION['form_submitted'])) {
     unset($_SESSION['form_submitted']);
-    $user['full_name'] = '';
-    $user['email'] = '';
-    $user['phone'] = '';
+    // $user['full_name'] = '';
+    // $user['email'] = '';
+    // $user['phone'] = '';
 }
 ?>
 <!DOCTYPE html>
@@ -147,8 +147,8 @@ if (isset($_SESSION['form_submitted'])) {
                 <h1 class="text-3xl font-bold text-green-600">Healthcare Portal</h1>
             </div>
             <nav class="flex space-x-8 text-gray-800 font-medium text-lg">
-                <a class="nav-link hover:text-green-600" href="index.php">Back</a>
-                <a class="nav-link hover:text-green-600" href="profile.php">My Profile</a>
+                <a class="nav-link hover:text-green-600" href="index.php">Home</a>
+                <a class="nav-link hover:text-green-600" href="patient-dashboard.php">Dashboard</a>
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <a class="nav-link text-red-600 hover:text-red-800" href="logout.php">Logout</a>
                 <?php else: ?>
@@ -180,17 +180,17 @@ if (isset($_SESSION['form_submitted'])) {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="fullName" class="block text-gray-800 font-medium mb-2 text-lg">Full Name</label>
-                    <input type="text" id="fullName" name="fullName" value="<?php echo isset($_SESSION['form_submitted']) ? '' : htmlspecialchars($user['full_name']); ?>" required
+                    <input readonly type="text" id="fullName" name="fullName" value="<?php echo isset($_SESSION['form_submitted']) ? '' : htmlspecialchars($user['full_name']); ?>" required
                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-green-600"/>
                 </div>
                 <div>
                     <label for="email" class="block text-gray-800 font-medium mb-2 text-lg">Email Address</label>
-                    <input type="email" id="email" name="email" value="<?php echo isset($_SESSION['form_submitted']) ? '' : htmlspecialchars($user['email']); ?>" required
+                    <input readonly type="email" id="email" name="email" value="<?php echo isset($_SESSION['form_submitted']) ? '' : htmlspecialchars($user['email']); ?>" required
                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-green-600"/>
                 </div>
                 <div>
                     <label for="phone" class="block text-gray-800 font-medium mb-2 text-lg">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" value="<?php echo isset($_SESSION['form_submitted']) ? '' : htmlspecialchars($user['phone']); ?>" required
+                    <input readonly type="tel" id="phone" name="phone" value="<?php echo isset($_SESSION['form_submitted']) ? '' : htmlspecialchars($user['phone']); ?>" required
                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-green-600"/>
                 </div>
                 <div>

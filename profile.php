@@ -123,9 +123,9 @@ if (!$user) {
                 <img alt="Healthcare Portal Logo" class="w-14 h-14" src="Images/Logo.png"/>
                 <h1 class="text-3xl font-bold text-green-600">User Profile</h1>
             </div>
-            <a class="text-blue-600 hover:text-blue-800 font-medium transition flex items-center gap-1" href="index.php">
+            <a class="text-blue-600 hover:text-blue-800 font-medium transition flex items-center gap-1" href="patient-dashboard.php">
                     <i class="fas fa-home"></i>
-                Back to Home
+                Back to Dashboard
                 </a>
             <button aria-label="Toggle sidebar" class="md:hidden text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-600" id="sidebar-toggle">
                 <i class="fas fa-bars fa-lg"></i>

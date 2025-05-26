@@ -2,16 +2,33 @@
 session_start();
 include('config.php');
 
+// Set time zone for Philippines
+date_default_timezone_set('Asia/Manila');
+
 // Check if admin is logged in
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 1) {
     header("Location: login.php");
     exit;
 }
 
-// Fetch appointments
+// Current date for comparison
+$current_date = date('Y-m-d');
+
+// Fetch appointments and calculate counts
 try {
     $stmt = $pdo->query("SELECT * FROM appointments ORDER BY date ASC, time ASC");
     $appointments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Calculate appointment counts
+    $counts = ['total' => 0, 'upcoming' => 0, 'done' => 0];
+    foreach ($appointments as $appt) {
+        $counts['total']++;
+        if ($appt['date'] >= $current_date) {
+            $counts['upcoming']++;
+        } else {
+            $counts['done']++;
+        }
+    }
 } catch (PDOException $e) {
     die("Error retrieving appointments: " . $e->getMessage());
 }
@@ -26,12 +43,23 @@ foreach ($appointments as $appt) {
     $appointments_by_date[$date][] = $appt;
 }
 
-// Fetch messages
+// Fetch messages and count
 try {
     $stmt = $pdo->query("SELECT * FROM messages ORDER BY sent_at DESC");
     $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $counts['messages'] = count($messages);
 } catch (PDOException $e) {
     die("Error retrieving messages: " . $e->getMessage());
+}
+
+// Group messages by date
+$messages_by_date = [];
+foreach ($messages as $msg) {
+    $date = date('Y-m-d', strtotime($msg['sent_at']));
+    if (!isset($messages_by_date[$date])) {
+        $messages_by_date[$date] = [];
+    }
+    $messages_by_date[$date][] = $msg;
 }
 ?>
 
@@ -47,7 +75,7 @@ try {
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f0f0f0;
+            background: linear-gradient(135deg, #f0f4f8 0%, #e0e7ef 100%);
         }
         .primary-bg {
             background-color: #10B981;
@@ -78,7 +106,6 @@ try {
         }
         .text-readable {
             color: #1E40AF;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
         .btn-primary {
             background-color: #10B981;
@@ -87,7 +114,8 @@ try {
             transition: all 0.3s ease;
         }
         .btn-primary:hover {
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.7);
+            background-color: #059669;
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.7);
             transform: scale(1.05);
         }
         .btn-secondary {
@@ -101,12 +129,20 @@ try {
             transform: scale(1.05);
         }
         .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 250px;
+            background: #fff;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease;
+            z-index: 40;
         }
         .sidebar-hidden {
             transform: translateX(-100%);
         }
-        a:focus, button:focus, input:focus, textarea:focus {
+        a:focus, button:focus, input:focus {
             outline: 3px solid #10B981;
             outline-offset: 2px;
         }
@@ -116,6 +152,14 @@ try {
         .message-feedback {
             display: none;
         }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .status-upcoming { background-color: #FEF3C7; color: #D97706; }
+        .status-done { background-color: #D1FAE5; color: #10B981; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -127,29 +171,84 @@ try {
         </div>
     </div>
 
-    <!-- Header -->
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar sidebar-hidden md:sidebar-visible">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold text-green-600 mb-6">Navigation</h2>
+            <ul class="space-y-4">
+                <li>
+                    <a href="index.php" class="nav-link flex items-center text-lg text-gray-700 hover:text-green-600">
+                        <i class="fas fa-home mr-2"></i> Home Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="logout.php" class="nav-link flex items-center text-lg text-gray-700 hover:text-red-600">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Log Out
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Header (Navigation) -->
     <header class="bg-white/90 shadow-lg sticky top-0 z-50 backdrop-blur-sm">
         <div class="container mx-auto px-6 py-4 flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <img alt="Healthcare Portal Logo" class="w-14 h-14" src="Images/Logo.png"/>
                 <h1 class="text-3xl font-bold text-green-600">Admin Dashboard</h1>
             </div>
-            <button aria-label="Toggle sidebar" class="md:hidden text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-600" id="sidebar-toggle">
-                <i class="fas fa-bars fa-lg"></i>
-            </button>
+            <div class="flex items-center space-x-4">
+                <a href="index.php" class="hidden md:block nav-link text-gray-700 hover:text-green-600 text-lg">
+                    <i class="fas fa-home mr-1"></i> Home
+                </a>
+                <a href="logout.php" class="hidden md:block nav-link text-gray-700 hover:text-red-600 text-lg">
+                    <i class="fas fa-sign-out-alt mr-1"></i> Log Out
+                </a>
+                <button aria-label="Toggle sidebar" class="md:hidden text-gray-800 focus:outline-none" id="sidebar-toggle">
+                    <i class="fas fa-bars fa-lg"></i>
+                </button>
+            </div>
         </div>
     </header>
 
     <!-- Main Content -->
+    <main class="flex-1 container mx-auto px-6 py-12">
+        <!-- Welcome Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-readable">Welcome, Admin</h1>
+        </header>
 
+        <!-- Summary Section -->
+        <section class="dashboard-section p-8 mb-12">
+            <h2 class="text-3xl font-semibold text-readable mb-6">Summary</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-gray-700">Total Appointments</h3>
+                    <p class="text-2xl font-bold text-green-600"><?php echo $counts['total']; ?></p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-gray-700">Upcoming Appointments</h3>
+                    <p class="text-2xl font-bold text-amber-600"><?php echo $counts['upcoming']; ?></p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-gray-700">Done Appointments</h3>
+                    <p class="text-2xl font-bold text-green-600"><?php echo $counts['done']; ?></p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-gray-700">Total Messages</h3>
+                    <p class="text-2xl font-bold text-blue-600"><?php echo $counts['messages']; ?></p>
+                </div>
+            </div>
+        </section>
 
-        <!-- Content -->
-        <main class="flex-1 dashboard-section p-8 md:p-12">
-            <!-- Appointments Section -->
-            <section id="appointments" class="mb-12">
-                <h2 class="text-4xl font-semibold text-readable mb-6">Appointments</h2>
+        <!-- Appointments and Messages -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Appointments Section (Left) -->
+            <section id="appointments" class="dashboard-section p-8">
+                <h2 class="text-3xl font-semibold text-readable mb-6">Appointments</h2>
                 <div class="mb-6">
-                    <input type="text" id="appointment-search" placeholder="Search by name or date..." class="w-full max-w-md px-4 py-3 border border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-green-600"/>
+                    <input type="text" id="appointment-search" placeholder="Search by name or date..."
+                           class="w-full max-w-md px-4 py-3 border border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-green-600"/>
                 </div>
                 <div class="space-y-4">
                     <?php if (empty($appointments_by_date)): ?>
@@ -157,8 +256,8 @@ try {
                     <?php else: ?>
                         <?php foreach ($appointments_by_date as $date => $appts): ?>
                             <div class="accordion">
-                                <input type="checkbox" id="date-<?php echo htmlspecialchars($date); ?>" class="accordion-toggle hidden"/>
-                                <label for="date-<?php echo htmlspecialchars($date); ?>" class="flex items-center justify-between px-4 py-3 bg-green-100 text-green-800 font-semibold rounded-lg cursor-pointer">
+                                <input type="checkbox" id="appt-date-<?php echo htmlspecialchars($date); ?>" class="accordion-toggle hidden"/>
+                                <label for="appt-date-<?php echo htmlspecialchars($date); ?>" class="flex items-center justify-between px-4 py-3 bg-green-100 text-green-800 font-semibold rounded-lg cursor-pointer">
                                     <span><?php echo htmlspecialchars($date); ?> (<?php echo count($appts); ?>)</span>
                                     <i class="fas fa-chevron-down transform transition-transform accordion-toggle-icon"></i>
                                 </label>
@@ -169,14 +268,21 @@ try {
                                                 <th class="pb-2">Full Name</th>
                                                 <th class="pb-2">Time</th>
                                                 <th class="pb-2">Doctor</th>
+                                                <th class="pb-2">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php foreach ($appts as $row): ?>
+                                                <?php $status = $row['date'] >= $current_date ? 'Upcoming' : 'Done'; ?>
                                                 <tr class="border-b hover:bg-gray-50">
                                                     <td class="py-2"><?php echo htmlspecialchars($row['fullName']); ?></td>
                                                     <td class="py-2"><?php echo htmlspecialchars($row['time']); ?></td>
                                                     <td class="py-2"><?php echo htmlspecialchars($row['doctor']); ?></td>
+                                                    <td class="py-2">
+                                                        <span class="status-badge status-<?php echo strtolower($status); ?>">
+                                                            <?php echo $status; ?>
+                                                        </span>
+                                                    </td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
@@ -188,39 +294,40 @@ try {
                 </div>
             </section>
 
-            <!-- Messages Section -->
-            <section id="messages">
-                <h2 class="text-4xl font-semibold text-readable mb-6">Messages</h2>
-                <div class="space-y-6">
-                    <?php if (empty($messages)): ?>
+            <!-- Messages Section (Right) -->
+            <section id="messages" class="dashboard-section p-8">
+                <h2 class="text-3xl font-semibold text-readable mb-6">Messages</h2>
+                <div class="space-y-4">
+                    <?php if (empty($messages_by_date)): ?>
                         <p class="text-gray-500 text-lg">No messages available.</p>
                     <?php else: ?>
-                        <ul class="space-y-6">
-                            <?php foreach ($messages as $row): ?>
-                                <li class="border-b pb-4" data-message-id="<?php echo $row['id']; ?>">
-                                    <p><strong class="text-green-700"><?php echo htmlspecialchars($row['sender_name']); ?></strong> 
-                                        <span class="text-sm text-gray-500">(<?php echo $row['sent_at']; ?>)</span>
-                                    </p>
-                                    <p class="text-gray-700 mb-2"><?php echo htmlspecialchars($row['message']); ?></p>
-                                    <form class="reply-form mt-2" data-message-id="<?php echo $row['id']; ?>">
-                                        <input type="hidden" name="message_id" value="<?php echo $row['id']; ?>">
-                                        <textarea name="reply_message" rows="3" required
-                                                  class="w-full p-3 border border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-green-600"
-                                                  placeholder="Write your reply..."></textarea>
-                                        <div class="message-feedback mt-2 text-sm"></div>
-                                        <div class="flex space-x-4 mt-2">
-                                            <button type="submit" class="btn-primary px-4 py-2 rounded-lg text-lg">Send Reply</button>
-                                            <button type="button" class="btn-secondary px-4 py-2 rounded-lg text-lg mark-read" data-message-id="<?php echo $row['id']; ?>">Mark as Read</button>
-                                        </div>
-                                    </form>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
+                        <?php foreach ($messages_by_date as $date => $msgs): ?>
+                            <div class="accordion">
+                                <input type="checkbox" id="msg-date-<?php echo htmlspecialchars($date); ?>" class="accordion-toggle hidden"/>
+                                <label for="msg-date-<?php echo htmlspecialchars($date); ?>" class="flex items-center justify-between px-4 py-3 bg-blue-100 text-blue-800 font-semibold rounded-lg cursor-pointer">
+                                    <span><?php echo htmlspecialchars($date); ?> (<?php echo count($msgs); ?>)</span>
+                                    <i class="fas fa-chevron-down transform transition-transform accordion-toggle-icon"></i>
+                                </label>
+                                <div class="accordion-content hidden">
+                                    <ul class="space-y-6 mt-2">
+                                        <?php foreach ($msgs as $row): ?>
+                                            <li class="border-b pb-4" data-message-id="<?php echo $row['id']; ?>">
+                                                <p><strong class="text-green-700"><?php echo htmlspecialchars($row['sender_name']); ?></strong>
+                                                    <span class="text-sm text-gray-500">(<?php echo $row['sent_at']; ?>)</span></p>
+                                                <p class="text-gray-700 mb-2"><?php echo htmlspecialchars($row['message']); ?></p>
+                                                <div class="message-feedback mt-2 text-sm"></div>
+                                                <button class="btn-secondary px-4 py-2 rounded-lg text-lg mark-read" data-message-id="<?php echo $row['id']; ?>">Mark as Read</button>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
             </section>
-        </main>
-    </div>
+        </div>
+    </main>
 
     <!-- Footer -->
     <footer class="bg-gray-900 text-white py-12 mt-auto">
@@ -270,10 +377,12 @@ try {
         // Sidebar Toggle
         const sidebarToggle = document.getElementById('sidebar-toggle');
         const sidebar = document.getElementById('sidebar');
-        sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('sidebar-hidden');
-            sidebar.classList.toggle('sidebar-visible');
-        });
+        if (sidebarToggle && sidebar) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('sidebar-hidden');
+                sidebar.classList.toggle('sidebar-visible');
+            });
+        }
 
         // Accordion Toggle
         document.querySelectorAll('.accordion-toggle').forEach(toggle => {
@@ -287,7 +396,7 @@ try {
         const searchInput = document.getElementById('appointment-search');
         searchInput.addEventListener('input', () => {
             const query = searchInput.value.toLowerCase();
-            document.querySelectorAll('.accordion').forEach(accordion => {
+            document.querySelectorAll('#appointments .accordion').forEach(accordion => {
                 const date = accordion.querySelector('label').textContent.toLowerCase();
                 const rows = accordion.querySelectorAll('tbody tr');
                 let hasMatch = date.includes(query);
@@ -299,40 +408,6 @@ try {
             });
         });
 
-        // Reply Form Submission
-        document.querySelectorAll('.reply-form').forEach(form => {
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = new FormData(form);
-                const feedback = form.querySelector('.message-feedback');
-                feedback.style.display = 'none';
-                feedback.className = 'message-feedback mt-2 text-sm';
-
-                try {
-                    const response = await fetch('send_reply.php', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        feedback.textContent = result.message;
-                        feedback.classList.add('text-green-600');
-                        feedback.style.display = 'block';
-                        form.reset();
-                        setTimeout(() => window.location.reload(), 1000);
-                    } else {
-                        feedback.textContent = result.error;
-                        feedback.classList.add('text-red-600');
-                        feedback.style.display = 'block';
-                    }
-                } catch (error) {
-                    feedback.textContent = 'An error occurred. Please try again.';
-                    feedback.classList.add('text-red-600');
-                    feedback.style.display = 'block';
-                }
-            });
-        });
-
         // Mark as Read (UI-only)
         document.querySelectorAll('.mark-read').forEach(button => {
             button.addEventListener('click', () => {
@@ -341,9 +416,8 @@ try {
                 feedback.style.display = 'none';
                 feedback.className = 'message-feedback mt-2 text-sm';
 
-                // Hide the mark-read button to simulate marking as read
                 button.style.display = 'none';
-                feedback.textContent = 'Message marked as read (UI-only)';
+                feedback.textContent = 'Message marked as read successfully.';
                 feedback.classList.add('text-green-600');
                 feedback.style.display = 'block';
             });

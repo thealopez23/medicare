@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 17, 2025 at 02:23 PM
+-- Generation Time: May 26, 2025 at 05:25 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -55,23 +55,29 @@ CREATE TABLE `appointments` (
   `date` date NOT NULL,
   `time` time NOT NULL,
   `message` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_approved` int(11) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `approve_status`
+--
+
+CREATE TABLE `approve_status` (
+  `id` int(11) NOT NULL,
+  `status` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `appointments`
+-- Dumping data for table `approve_status`
 --
 
-INSERT INTO `appointments` (`id`, `fullName`, `email`, `phone`, `doctor`, `date`, `time`, `message`, `created_at`) VALUES
-(10, 'Appey', 'mansanas@apple.com', '0999999999', 'Dr. Renelyn - Dermatologist', '2025-05-12', '16:40:00', 'masakit ngipin', '2025-05-12 08:40:08'),
-(11, 'Appey', 'mansanas@apple.com', '0999999999', 'Dr. Renelyn - Dermatologist', '2025-05-12', '16:42:00', 'masakit ngipin nya', '2025-05-12 08:41:05'),
-(12, 'Appey', 'mansanas@apple.com', '0999999999', 'Dr. Thea - Pediatrician', '2025-05-12', '16:50:00', 'kulang sa bitamina', '2025-05-12 08:48:32'),
-(13, 'Appey', 'mansanas@apple.com', '0999999999', 'Dr. Alexa - Cardiologist', '2025-05-24', '20:25:00', 'hindi makahinga at masikip damit', '2025-05-17 11:25:42'),
-(14, 'Appey', 'mansanas@apple.com', '0999999999', 'Dr. Alexa - Cardiologist', '2025-05-18', '19:26:00', 'dadas', '2025-05-17 11:26:33'),
-(15, 'Appey', 'mansanas@apple.com', '0999999999', 'Dr. Alexa - Cardiologist', '2025-05-24', '19:41:00', 'kabag', '2025-05-17 11:39:35'),
-(16, 'Appey', 'mansanas@apple.com', '0999999999', 'Dr. Alexa - Cardiologist', '2025-05-20', '19:40:00', 'sadasdad', '2025-05-17 11:39:51'),
-(17, 'Appey', 'mansanas@apple.com', '0999999999', 'Dr. Alexa - Cardiologist', '2025-05-20', '19:43:00', 'adsad', '2025-05-17 11:42:36'),
-(18, 'Appey', 'mansanas@apple.com', '0999999999', 'Dr. Thea - Pediatrician', '2025-05-26', '19:48:00', 'dasdsa', '2025-05-17 11:45:43');
+INSERT INTO `approve_status` (`id`, `status`) VALUES
+(1, 'PENDING'),
+(2, 'APPROVED'),
+(3, 'REJECTED');
 
 -- --------------------------------------------------------
 
@@ -130,13 +136,6 @@ CREATE TABLE `messages` (
   `sent_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `messages`
---
-
-INSERT INTO `messages` (`id`, `sender_name`, `email`, `message`, `sent_at`) VALUES
-(1, 'Alexa', NULL, 'Hello', '2025-05-05 11:53:45');
-
 -- --------------------------------------------------------
 
 --
@@ -149,13 +148,6 @@ CREATE TABLE `message_replies` (
   `reply_text` text NOT NULL,
   `replied_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `message_replies`
---
-
-INSERT INTO `message_replies` (`id`, `message_id`, `reply_text`, `replied_at`) VALUES
-(1, 1, 'Hi', '2025-05-05 12:56:51');
 
 -- --------------------------------------------------------
 
@@ -204,25 +196,10 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `full_name`, `role`, `age`, `address`, `birthday`, `email`, `password`, `created_at`, `updated_at`, `phone`) VALUES
 (2, 'Thea Lopez', 3, 21, 'San Lucas', '2004-01-14', 'thea@gmail.com', '$2y$10$6Xazg7116XLo3gLqLPy30epRxCeiXqQx0OFXCsXggJfExYTIW6JKi', '2025-04-28 03:39:42', '2025-05-12 07:32:45', '9938261901'),
 (3, 'Alexa', 3, 20, 'San Pablo', '2005-01-17', '0323-3701@lspu.edu.ph', '$2y$10$HrvVN42Ie3nO4bh3v/Oisu81xbpW9fuP6tz3Cs0WotEJrv3.b0Ycu', '2025-05-06 12:20:41', '2025-05-12 07:33:08', '0953287752'),
-(6, 'Appey', 3, 21, 'Taga Putol', '2003-10-15', 'mansanas@apple.com', '$2y$10$tIyHk/vREGf/aEjgWtgmBein6oBkQxXPUpiGmRpjuxThNGTCK0udC', '2025-05-11 11:31:49', '2025-05-12 07:33:12', '0999999999'),
 (15, 'Dr. Alexa - Cardiologist', 2, 40, '123 Heart Ave', '1984-01-01', 'alexa@healthcare.com', '$2y$10$fhkz0PM5ksuocuutgSyupumfhMNc28QV/senWG5SnXTPD55zt5DZC', '2025-05-12 08:28:15', '2025-05-12 08:28:15', '0912345678'),
 (16, 'Dr. Thea - Pediatrician', 2, 38, '456 Kids St', '1986-02-02', 'thea@healthcare.com', '$2y$10$9UQ08qPEGmu8O6QuGWW01.7.IJzDwwyGCC0h1.JCMzHoI2ALGbhpi', '2025-05-12 08:28:15', '2025-05-12 08:28:15', '0923456789'),
 (17, 'Dr. Renelyn - Dermatologist', 2, 35, '789 Skin Blvd', '1989-03-03', 'renelyn@healthcare.com', '$2y$10$GXFdCSLyK3aghozFQp/d8.woqRCahsJ83JefG4aFkvAPt2wY60HZC', '2025-05-12 08:28:15', '2025-05-12 08:28:15', '0934567890'),
-(18, 'Admin', 1, 30, 'Admin HQ', '1994-04-04', 'admin@healthcare.com', '$2y$10$r0vlTIxrV8pxvyluI0DjM.OlYtW/fygZa.0SqMhkXajBE/nH.DIdC', '2025-05-12 08:28:15', '2025-05-12 08:28:15', '0999999999'),
-(21, 'Appey', 1, 1, 'Taga Putol', '2025-05-17', 'mansanas@apple1.com', '$2y$10$fUzN8QjaUXtwYQwIrK/zB.F7VhkZZoECMDjkwUJNqyl0CKdjUR5bC', '2025-05-17 11:17:19', '2025-05-17 11:17:19', '0999999999');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `user_appointments`
---
-
-CREATE TABLE `user_appointments` (
-  `id` int(11) NOT NULL,
-  `client_name` varchar(100) DEFAULT NULL,
-  `date_time` datetime DEFAULT NULL,
-  `description` text DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+(18, 'Admin', 1, 30, 'Admin HQ', '1994-04-04', 'admin@healthcare.com', '$2y$10$r0vlTIxrV8pxvyluI0DjM.OlYtW/fygZa.0SqMhkXajBE/nH.DIdC', '2025-05-12 08:28:15', '2025-05-12 08:28:15', '0999999999');
 
 --
 -- Indexes for dumped tables
@@ -239,7 +216,15 @@ ALTER TABLE `admins`
 --
 ALTER TABLE `appointments`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_doctor_name` (`doctor`);
+  ADD KEY `fk_doctor_name` (`doctor`),
+  ADD KEY `fk_patient_email` (`email`),
+  ADD KEY `fk_approve_status` (`is_approved`);
+
+--
+-- Indexes for table `approve_status`
+--
+ALTER TABLE `approve_status`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `contacts`
@@ -283,12 +268,6 @@ ALTER TABLE `users`
   ADD KEY `fk_role` (`role`);
 
 --
--- Indexes for table `user_appointments`
---
-ALTER TABLE `user_appointments`
-  ADD PRIMARY KEY (`id`);
-
---
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -302,7 +281,7 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `appointments`
 --
 ALTER TABLE `appointments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `contacts`
@@ -320,7 +299,7 @@ ALTER TABLE `doctors`
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `message_replies`
@@ -338,13 +317,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
-
---
--- AUTO_INCREMENT for table `user_appointments`
---
-ALTER TABLE `user_appointments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- Constraints for dumped tables
@@ -354,7 +327,9 @@ ALTER TABLE `user_appointments`
 -- Constraints for table `appointments`
 --
 ALTER TABLE `appointments`
-  ADD CONSTRAINT `fk_doctor_name` FOREIGN KEY (`doctor`) REFERENCES `doctors` (`name`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_approve_status` FOREIGN KEY (`is_approved`) REFERENCES `approve_status` (`id`),
+  ADD CONSTRAINT `fk_doctor_name` FOREIGN KEY (`doctor`) REFERENCES `doctors` (`name`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_patient_email` FOREIGN KEY (`email`) REFERENCES `users` (`email`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `doctors`

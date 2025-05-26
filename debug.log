@@ -1,0 +1,116 @@
+signup.php accessed: 2025-05-20 04:20:44
+signup.php accessed: 2025-05-20 04:21:31
+Form Data: Array
+(
+    [full_name] => Emma
+    [age] => 23
+    [address] => Manila
+    [birthday] => 2002-02-05
+    [email] => joy@gmail.com
+    [phone] => 3555335342
+    [password] => Emma
+    [role] => 1
+)
+
+Database Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'joy@gmail.com' for key 'email'
+signup.php accessed: 2025-05-20 04:51:31
+signup.php accessed: 2025-05-20 04:52:01
+signup.php accessed: 2025-05-20 04:53:14
+Form Data: Array
+(
+    [full_name] => Lex
+    [age] => 20
+    [address] => Manila
+    [birthday] => 2005-05-22
+    [email] => lex@gmail.com
+    [phone] => 0981143445
+    [password] => Lexie
+    [role] => 3
+)
+
+User registered successfully
+signup.php accessed: 2025-05-20 06:35:48
+signup.php accessed: 2025-05-20 06:37:08
+Form Data: Array
+(
+    [full_name] => Lexa
+    [age] => 22
+    [address] => Manila
+    [birthday] => 2003-05-13
+    [email] => Lexa@gmail.com
+    [phone] => 0981176367
+    [password] => adminlexa
+    [role] => 1
+)
+
+User registered successfully
+signup.php accessed: 2025-05-24 16:08:29
+signup.php accessed: 2025-05-24 16:09:11
+Form Data: Array
+(
+    [full_name] => Apple Valdesco
+    [age] => 22
+    [address] => Brgy.Sta.Cruz
+    [birthday] => 2003-05-05
+    [email] => applevaldesco19@gmail.com
+    [phone] => 0981176342
+    [password] => secret
+    [role] => 3
+)
+
+signup.php accessed: 2025-05-24 17:07:04
+signup.php accessed: 2025-05-24 17:08:16
+Form Data: Array
+(
+    [full_name] => Admin
+    [age] => 23
+    [address] => Manila
+    [birthday] => 2002-05-06
+    [email] => admin@gmail.com
+    [phone] => 0981176345
+    [password] => ADMIN12345
+    [role] => 1
+)
+
+signup.php accessed: 2025-05-25 10:48:25
+signup.php accessed: 2025-05-25 10:49:30
+Form Data: Array
+(
+    [full_name] => Admin
+    [age] => 23
+    [address] => Manila
+    [birthday] => 2002-02-12
+    [email] => admin@gmail.com
+    [phone] => 0981176342
+    [password] => ADMIN12345
+    [role] => 1
+)
+
+signup.php accessed: 2025-05-25 11:17:43
+signup.php accessed: 2025-05-25 11:18:13
+Form Data: Array
+(
+    [full_name] => Apple Valdesco
+    [age] => 22
+    [address] => Brgy.Sta.Cruz
+    [birthday] => 2003-05-06
+    [email] => applevaldesco19@gmail.com
+    [phone] => 0981176343
+    [password] => secret
+    [role] => 3
+)
+
+signup.php accessed: 2025-05-25 11:18:55
+signup.php accessed: 2025-05-25 11:19:40
+Form Data: Array
+(
+    [full_name] => Emma Watson
+    [age] => 23
+    [address] => Manila
+    [birthday] => 2002-02-12
+    [email] => emma@gmail.com
+    [phone] => 0981176343
+    [password] => EMMAWATSON
+    [role] => 3
+)
+

@@ -8,6 +8,11 @@ include('config.php');
 // Log to a file for debugging
 file_put_contents('debug.log', "signup.php accessed: " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
 
+// Initialize variables for alerts
+$alert_message = '';
+$alert_type = '';
+$alert_title = '';
+
 // Check if the form is submitted
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Collect and sanitize form data
@@ -23,39 +28,58 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Debug: Log form data
     file_put_contents('debug.log', "Form Data: " . print_r($_POST, true) . "\n", FILE_APPEND);
 
-    // Hash the password
-    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    // Validate required fields
+    if (empty($full_name) || empty($email) || empty($password) || empty($phone) || $role == 0) {
+        $alert_title = 'Validation Error!';
+        $alert_message = 'Please fill in all required fields.';
+        $alert_type = 'error';
+    } else {
+        // Hash the password
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-    // Query to insert user data
-    $sql = "INSERT INTO users (full_name, role, age, address, birthday, email, password, phone) 
-            VALUES (:full_name, :role, :age, :address, :birthday, :email, :password, :phone)";
-    
-    try {
-        // Prepare the statement
-        $stmt = $pdo->prepare($sql);
+        // Query to insert user data
+        $sql = "INSERT INTO users (full_name, role, age, address, birthday, email, password, phone) 
+                VALUES (:full_name, :role, :age, :address, :birthday, :email, :password, :phone)";
         
-        // Bind parameters
-        $stmt->bindParam(':full_name', $full_name, PDO::PARAM_STR);
-        $stmt->bindParam(':role', $role, PDO::PARAM_INT);
-        $stmt->bindParam(':age', $age, PDO::PARAM_INT);
-        $stmt->bindParam(':address', $address, PDO::PARAM_STR);
-        $stmt->bindParam(':birthday', $birthday, PDO::PARAM_STR);
-        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
-        $stmt->bindParam(':password', $hashed_password, PDO::PARAM_STR);
-        $stmt->bindParam(':phone', $phone, PDO::PARAM_STR);
-        
-        // Execute the statement
-        if ($stmt->execute()) {
-            file_put_contents('debug.log', "User registered successfully\n", FILE_APPEND);
-            header('Location: index.php?signup=success');
-            exit();
-        } else {
-            file_put_contents('debug.log', "Query execution failed\n", FILE_APPEND);
-            echo "Error: Could not execute query.";
+        try {
+            // Prepare the statement
+            $stmt = $pdo->prepare($sql);
+            
+            // Bind parameters
+            $stmt->bindParam(':full_name', $full_name, PDO::PARAM_STR);
+            $stmt->bindParam(':role', $role, PDO::PARAM_INT);
+            $stmt->bindParam(':age', $age, PDO::PARAM_INT);
+            $stmt->bindParam(':address', $address, PDO::PARAM_STR);
+            $stmt->bindParam(':birthday', $birthday, PDO::PARAM_STR);
+            $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+            $stmt->bindParam(':password', $hashed_password, PDO::PARAM_STR);
+            $stmt->bindParam(':phone', $phone, PDO::PARAM_STR);
+            
+            // Execute the statement
+            if ($stmt->execute()) {
+                $alert_title = 'Success!';
+                $alert_message = 'Account created successfully! You will be redirected to the login page.';
+                $alert_type = 'success';
+            } else {
+                $alert_title = 'Database Error!';
+                $alert_message = 'Could not create account. Please try again.';
+                $alert_type = 'error';
+            }
+        } catch (PDOException $e) {
+            // Check for duplicate email error
+            if ($e->getCode() == 23000) {
+                $alert_title = 'Email Already Exists!';
+                $alert_message = 'An account with this email already exists. Please use a different email or try logging in.';
+                $alert_type = 'warning';
+            } else {
+                $alert_title = 'Database Error!';
+                $alert_message = 'Database connection failed. Please try again later.';
+                $alert_type = 'error';
+            }
+            
+            // Log the actual error for debugging
+            file_put_contents('debug.log', "Database Error: " . $e->getMessage() . "\n", FILE_APPEND);
         }
-    } catch (PDOException $e) {
-        file_put_contents('debug.log', "Database Error: " . $e->getMessage() . "\n", FILE_APPEND);
-        echo "Database Error: " . $e->getMessage();
     }
 }
 ?>
@@ -66,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Sign Up - Healthcare Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet"/>
     <style>
@@ -181,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="mb-8">
             <img alt="Healthcare professional" class="rounded-xl shadow-lg w-full max-w-md h-48 object-cover mx-auto" src="Images/medical.png"/>
         </div>
-        <form action="signup.php" method="POST" class="space-y-6">
+        <form action="signup.php" method="POST" class="space-y-6" id="signupForm">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="full_name" class="block text-gray-800 font-medium mb-2 text-lg">Full Name</label>
@@ -215,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
                 <div>
                     <label for="password" class="block text-gray-800 font-medium mb-2 text-lg">Password</label>
-                    <input type="password" id="password" name="password" required
+                    <input type="password" id="password" name="password" required minlength="6"
                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-green-600"/>
                 </div>
                 <div>
@@ -225,7 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <option value="" disabled selected>Select your role</option>
                         <option value="1">Admin</option>
                         <option value="2">Doctor</option>
-                        <option value="3">User</option>
+                        <option value="3">Patient</option>
                     </select>
                 </div>
             </div>
@@ -319,6 +344,73 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Preloader
         window.addEventListener('load', () => {
             document.getElementById('preloader').style.display = 'none';
+            
+            // Show alert after page loads if there's a message
+            <?php if (!empty($alert_message)): ?>
+            Swal.fire({
+                title: '<?php echo $alert_title; ?>',
+                text: '<?php echo $alert_message; ?>',
+                icon: '<?php echo $alert_type; ?>',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#10B981',
+                showConfirmButton: true,
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    <?php if ($alert_type === 'success'): ?>
+                    window.location.href = 'login.php';
+                    <?php endif; ?>
+                }
+            });
+            <?php endif; ?>
+        });
+
+        // Form validation before submit
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            
+            // Password validation
+            if (password.length < 6) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Password Too Short!',
+                    text: 'Password must be at least 6 characters long.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#10B981'
+                });
+                return;
+            }
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Invalid Email!',
+                    text: 'Please enter a valid email address.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#10B981'
+                });
+                return;
+            }
+            
+            // Phone validation
+            const phoneRegex = /^[0-9]{10}$/;
+            if (!phoneRegex.test(phone)) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Invalid Phone Number!',
+                    text: 'Phone number must be exactly 10 digits.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#10B981'
+                });
+                return;
+            }
         });
 
         // Smooth scroll for anchor links

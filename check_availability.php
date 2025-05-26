@@ -14,8 +14,8 @@ $date = $_GET['date'] ?? null;
 
 try {
     if ($date) {
-        // Check specific date availability
-        $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM appointments WHERE doctor = ? AND date = ?");
+        // Check specific date availability - only count pending and approved appointments
+        $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM appointments WHERE doctor = ? AND date = ? AND is_approved IN (1, 2)");
         $stmt->execute([$doctor, $date]);
         $result = $stmt->fetch();
         
@@ -24,8 +24,8 @@ try {
             'count' => $result['count']
         ]);
     } else {
-        // Get all booked dates for the doctor
-        $stmt = $pdo->prepare("SELECT date FROM appointments WHERE doctor = ? AND date >= CURDATE()");
+        // Get all booked dates for the doctor - only include pending and approved appointments
+        $stmt = $pdo->prepare("SELECT date FROM appointments WHERE doctor = ? AND date >= CURDATE() AND is_approved IN (1, 2)");
         $stmt->execute([$doctor]);
         $bookedDates = $stmt->fetchAll(PDO::FETCH_COLUMN);
         
