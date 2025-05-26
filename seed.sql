@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 26, 2025 at 05:25 AM
+-- Generation Time: May 26, 2025 at 12:05 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -56,8 +56,22 @@ CREATE TABLE `appointments` (
   `time` time NOT NULL,
   `message` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `is_approved` int(11) NOT NULL DEFAULT 1
+  `is_approved` int(11) NOT NULL DEFAULT 1,
+  `decline_reason` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `appointments`
+--
+
+INSERT INTO `appointments` (`id`, `fullName`, `email`, `phone`, `doctor`, `date`, `time`, `message`, `created_at`, `is_approved`, `decline_reason`) VALUES
+(21, 'Appey', 'mansanas@apple.com', '0999999999', 'Dr. Thea - Pediatrician', '2025-05-24', '11:00:00', 'Testing', '2025-05-23 08:15:48', 2, ''),
+(22, 'Appey', 'mansanas@apple.com', '0999999999', 'Dr. Alexa - Cardiologist', '2025-05-23', '09:00:00', 'reject testing', '2025-05-23 08:18:49', 3, ''),
+(24, 'Apple Valdesco', 'applevaldesco19@gmail.com', '0981176343', 'Dr. Renelyn - Dermatologist', '2025-05-27', '13:00:00', 'acne', '2025-05-26 02:09:31', 2, ''),
+(25, 'Apple Valdesco', 'applevaldesco19@gmail.com', '0981176343', 'Dr. Thea - Pediatrician', '2025-05-29', '11:00:00', 'eme lang', '2025-05-26 03:12:59', 3, ''),
+(26, 'Apple Valdesco', 'applevaldesco19@gmail.com', '0981176343', 'Dr. Alexa - Cardiologist', '2025-05-28', '10:00:00', 'testing', '2025-05-26 07:59:14', 3, 'ayoko lang'),
+(27, 'Apple Valdesco', 'applevaldesco19@gmail.com', '0981176343', 'Dr. Thea - Pediatrician', '2025-05-28', '12:00:00', 'dsdhsdujhsjdsjdbnsjdbsjdhbsjduhsjd', '2025-05-26 08:17:17', 2, ''),
+(28, 'Apple Valdesco', 'applevaldesco19@gmail.com', '0981176343', 'Dr. Thea - Pediatrician', '2025-05-29', '10:00:00', 'fegfgafsdgdhfh', '2025-05-26 08:18:38', 3, 'TRIP LANG');
 
 -- --------------------------------------------------------
 
@@ -136,6 +150,18 @@ CREATE TABLE `messages` (
   `sent_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `messages`
+--
+
+INSERT INTO `messages` (`id`, `sender_name`, `email`, `message`, `sent_at`) VALUES
+(1, 'Alexa', NULL, 'Hello', '2025-05-05 11:53:45'),
+(2, 'apple', NULL, 'good service', '2025-05-26 10:10:12'),
+(3, 'apple', NULL, 'basta', '2025-05-26 10:16:09'),
+(4, 'apple', NULL, 'basta', '2025-05-26 10:16:19'),
+(5, 'apple', NULL, 'sdsf', '2025-05-26 10:16:26'),
+(6, 'unknown', 'applevaldesco19@gmail.com', 'asd', '2025-05-26 11:45:20');
+
 -- --------------------------------------------------------
 
 --
@@ -148,6 +174,13 @@ CREATE TABLE `message_replies` (
   `reply_text` text NOT NULL,
   `replied_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `message_replies`
+--
+
+INSERT INTO `message_replies` (`id`, `message_id`, `reply_text`, `replied_at`) VALUES
+(1, 1, 'Hi', '2025-05-05 12:56:51');
 
 -- --------------------------------------------------------
 
@@ -199,7 +232,11 @@ INSERT INTO `users` (`id`, `full_name`, `role`, `age`, `address`, `birthday`, `e
 (15, 'Dr. Alexa - Cardiologist', 2, 40, '123 Heart Ave', '1984-01-01', 'alexa@healthcare.com', '$2y$10$fhkz0PM5ksuocuutgSyupumfhMNc28QV/senWG5SnXTPD55zt5DZC', '2025-05-12 08:28:15', '2025-05-12 08:28:15', '0912345678'),
 (16, 'Dr. Thea - Pediatrician', 2, 38, '456 Kids St', '1986-02-02', 'thea@healthcare.com', '$2y$10$9UQ08qPEGmu8O6QuGWW01.7.IJzDwwyGCC0h1.JCMzHoI2ALGbhpi', '2025-05-12 08:28:15', '2025-05-12 08:28:15', '0923456789'),
 (17, 'Dr. Renelyn - Dermatologist', 2, 35, '789 Skin Blvd', '1989-03-03', 'renelyn@healthcare.com', '$2y$10$GXFdCSLyK3aghozFQp/d8.woqRCahsJ83JefG4aFkvAPt2wY60HZC', '2025-05-12 08:28:15', '2025-05-12 08:28:15', '0934567890'),
-(18, 'Admin', 1, 30, 'Admin HQ', '1994-04-04', 'admin@healthcare.com', '$2y$10$r0vlTIxrV8pxvyluI0DjM.OlYtW/fygZa.0SqMhkXajBE/nH.DIdC', '2025-05-12 08:28:15', '2025-05-12 08:28:15', '0999999999');
+(18, 'Admin', 1, 30, 'Admin HQ', '1994-04-04', 'admin@healthcare.com', '$2y$10$r0vlTIxrV8pxvyluI0DjM.OlYtW/fygZa.0SqMhkXajBE/nH.DIdC', '2025-05-12 08:28:15', '2025-05-12 08:28:15', '0999999999'),
+(31, 'Appey', 3, 1, 'Taga Putol', '2025-05-23', 'mansanas@apple.com', '$2y$10$EjBTDZyUwbjkn.5yNCA/je21vCFTYCvA8S8cQMS/wVVC5A5ZzI6gi', '2025-05-23 08:14:53', '2025-05-23 08:14:53', '0999999999'),
+(32, 'Admin', 1, 23, 'Manila', '2002-02-12', 'admin@gmail.com', '$2y$10$3n.02eSJVnZiROsBFQZyMuV03KtixHk2BaSYb6aMDSy4i2woUVNF2', '2025-05-25 08:49:30', '2025-05-25 08:49:30', '0981176342'),
+(33, 'Apple Valdesco', 3, 22, 'Brgy.Sta.Cruz', '2003-05-06', 'applevaldesco19@gmail.com', '$2y$10$TND0DRQCObKMJJqjyG0EG.1Vgxi58YLW5VYqW8KRkJLSZbIr8AWla', '2025-05-25 09:18:13', '2025-05-25 09:18:13', '0981176343'),
+(34, 'Emma Watson', 3, 23, 'Manila', '2002-02-12', 'emma@gmail.com', '$2y$10$76aKpLN9sSZk98f1mcT0leyQJ2.l3E3P4AmnpgooKSCBepGNeqzZy', '2025-05-25 09:19:40', '2025-05-25 09:19:40', '0981176343');
 
 --
 -- Indexes for dumped tables
@@ -281,7 +318,7 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `appointments`
 --
 ALTER TABLE `appointments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `contacts`
@@ -299,7 +336,7 @@ ALTER TABLE `doctors`
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `message_replies`
@@ -317,7 +354,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- Constraints for dumped tables
