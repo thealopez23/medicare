@@ -38,7 +38,7 @@ function getDashboardText() {
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <title>Healthcare Portal</title>
+    <title>Medicare</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet"/>
@@ -163,8 +163,8 @@ function getDashboardText() {
     <header class="bg-white/90 shadow-lg sticky top-0 z-50 backdrop-blur-sm">
         <div class="container mx-auto px-6 py-4 flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <img alt="Healthcare Portal Logo" class="w-14 h-14" src="Images/Logo.png" />
-                <h1 class="text-3xl font-bold text-green-600">Healthcare Portal</h1>
+                <img alt="Medicare Logo" class="w-14 h-14" src="Images/Logo.png" />
+                <h1 class="text-3xl font-bold text-green-600">Medicare</h1>
             </div>
             <nav class="hidden md:flex space-x-8 text-gray-800 font-medium text-lg">
                 <a class="nav-link hover:text-green-600" href="services.php">Services</a>
@@ -231,7 +231,7 @@ function getDashboardText() {
         <div class="container mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
-                    <h3 class="text-2xl font-semibold mb-4">Healthcare Portal</h3>
+                    <h3 class="text-2xl font-semibold mb-4">Medicare</h3>
                     <p class="text-gray-300 text-lg leading-relaxed">Providing quality healthcare services with compassion and expertise.</p>
                 </div>
                 <div>
@@ -260,7 +260,7 @@ function getDashboardText() {
                 </div>
             </div>
             <div class="mt-8 pt-8 border-t border-gray-700 text-center">
-                <p class="text-lg">© 2025 Healthcare Portal. All rights reserved.</p>
+                <p class="text-lg">© 2025 Medicare. All rights reserved.</p>
             </div>
         </div>
     </footer>

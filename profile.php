@@ -25,7 +25,7 @@ if (!$user) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile - Healthcare Portal</title>
+    <title>User Profile - Medicare</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -85,7 +85,7 @@ if (!$user) {
         <header class="bg-gradient-to-r from-green-500 to-emerald-600 shadow-md py-4 px-6 flex items-center justify-between text-white">
             <div class="flex items-center gap-3">
                 <img src="Images/Logo.png" alt="Logo" class="w-12 h-12">
-                <h1 class="text-2xl font-bold">Healthcare Portal</h1>
+                <h1 class="text-2xl font-bold">Medicare</h1>
             </div>
             <a href="patient-dashboard.php" class="hover:underline font-medium flex items-center gap-1"><i class="fas fa-home"></i> Dashboard</a>
         </header>
@@ -148,7 +148,7 @@ if (!$user) {
 
         <!-- Footer -->
         <footer class="bg-green-800 text-white text-center py-6 mt-auto">
-            <p class="text-lg">© <?php echo date("Y"); ?> Healthcare Portal. All rights reserved.</p>
+            <p class="text-lg">© <?php echo date("Y"); ?> Medicare. All rights reserved.</p>
         </footer>
     </div>
 </body>

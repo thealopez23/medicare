@@ -33,8 +33,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $name = $user['sender_name'];
 
         // Email reply to user
-        $subject = "Reply from Healthcare Portal Admin";
-        $message_body = "Hello $name,\n\nHere is the admin's reply to your message:\n\n$reply\n\nBest regards,\nHealthcare Portal Team";
+        $subject = "Reply from Medicare Admin";
+        $message_body = "Hello $name,\n\nHere is the admin's reply to your message:\n\n$reply\n\nBest regards,\nMedicare Team";
         $headers = "From: admin@yourdomain.com"; // Change to your real admin email
 
         if (mail($email, $subject, $message_body, $headers)) {

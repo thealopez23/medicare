@@ -64,7 +64,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Dashboard - Healthcare Portal</title>
+    <title>Patient Dashboard - Medicare</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
@@ -119,7 +119,7 @@ try {
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <img src="Images/Logo.png" alt="Logo" class="h-8 w-8 mr-2">
-                    <span class="text-xl font-bold text-gray-900">Healthcare Portal</span>
+                    <span class="text-xl font-bold text-gray-900">Medicare</span>
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="index.php" class="nav-link text-gray-600 hover:text-blue-600 font-medium">

@@ -75,7 +75,7 @@ $declined_appointments = array_filter($appointments, function($apt) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doctor Dashboard - Healthcare Portal</title>
+    <title>Doctor Dashboard - Medicare</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -112,7 +112,7 @@ $declined_appointments = array_filter($appointments, function($apt) {
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <img src="Images/Logo.png" alt="Logo" class="h-8 w-8 mr-2">
-                    <span class="text-xl font-semibold text-gray-800">Healthcare Portal</span>
+                    <span class="text-xl font-semibold text-gray-800">Medicare</span>
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="doctor-profile.php" class="text-gray-600 hover:text-gray-800">
@@ -328,7 +328,7 @@ $declined_appointments = array_filter($appointments, function($apt) {
     <footer class="bg-white border-t mt-8">
         <div class="container mx-auto px-4 py-6">
             <p class="text-center text-gray-600 text-sm">
-                © <?php echo date('Y'); ?> Healthcare Portal. All rights reserved.
+                © <?php echo date('Y'); ?> Medicare. All rights reserved.
             </p>
         </div>
     </footer>

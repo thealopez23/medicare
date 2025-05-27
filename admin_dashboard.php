@@ -68,7 +68,7 @@ foreach ($messages as $msg) {
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Admin Dashboard - Healthcare Portal</title>
+    <title>Admin Dashboard - Medicare</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet"/>
@@ -194,7 +194,7 @@ foreach ($messages as $msg) {
     <header class="bg-white/90 shadow-lg sticky top-0 z-50 backdrop-blur-sm">
         <div class="container mx-auto px-6 py-4 flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <img alt="Healthcare Portal Logo" class="w-14 h-14" src="Images/Logo.png"/>
+                <img alt="Medicare Logo" class="w-14 h-14" src="Images/Logo.png"/>
                 <h1 class="text-3xl font-bold text-green-600">Admin Dashboard</h1>
             </div>
             <div class="flex items-center space-x-4">
@@ -334,7 +334,7 @@ foreach ($messages as $msg) {
         <div class="container mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
-                    <h3 class="text-2xl font-semibold mb-4">Healthcare Portal</h3>
+                    <h3 class="text-2xl font-semibold mb-4">Medicare</h3>
                     <p class="text-gray-300 text-lg leading-relaxed">Providing quality healthcare services with compassion and expertise.</p>
                 </div>
                 <div>
@@ -363,7 +363,7 @@ foreach ($messages as $msg) {
                 </div>
             </div>
             <div class="mt-8 pt-8 border-t border-gray-700 text-center">
-                <p class="text-lg">© <?php echo date("Y"); ?> Healthcare Portal. All rights reserved.</p>
+                <p class="text-lg">© <?php echo date("Y"); ?> Medicare. All rights reserved.</p>
             </div>
         </div>
     </footer>

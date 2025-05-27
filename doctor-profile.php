@@ -3,7 +3,8 @@ session_start();
 include('config.php');
 
 // Set time zone for consistency
-date_default_timezone_set('America/Los_Angeles');
+date_default_timezone_set('Asia/Manila');
+// Check if the database connection is established
 
 // Check if user is logged in and has doctor role
 if (!isset($_SESSION['user_id'])) {
@@ -114,7 +115,7 @@ if (!$doctor_info) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Doctor Profile - <?php echo htmlspecialchars($doctor_info['name']); ?> - Healthcare Portal</title>
+  <title>Doctor Profile - <?php echo htmlspecialchars($doctor_info['name']); ?> - Medicare</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -154,8 +155,8 @@ if (!$doctor_info) {
   <header class="bg-white shadow-lg sticky top-0 z-50 backdrop-blur-sm">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
       <div class="flex items-center space-x-3">
-        <img src="Images/Logo.png" alt="Healthcare Portal Logo" class="h-10 w-10">
-        <h1 class="text-2xl font-bold text-teal-600">Healthcare Portal</h1>
+        <img src="Images/Logo.png" alt="Medicare Logo" class="h-10 w-10">
+        <h1 class="text-2xl font-bold text-teal-600">Medicare</h1>
       </div>
       <nav class="space-x-6">
         <a href="doctor_dashboard.php" class="nav-link text-gray-700 hover:text-teal-600 text-lg font-medium transition">
@@ -279,7 +280,7 @@ if (!$doctor_info) {
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
-          <h3 class="text-xl font-semibold mb-4">Healthcare Portal</h3>
+          <h3 class="text-xl font-semibold mb-4">Medicare</h3>
           <p class="text-teal-100 text-base">Providing quality healthcare services with compassion and expertise.</p>
         </div>
         <div>
@@ -301,7 +302,7 @@ if (!$doctor_info) {
         </div>
       </div>
       <div class="mt-8 pt-6 border-t border-teal-700 text-center">
-        <p class="text-teal-100 text-base">© <?php echo date("Y"); ?> Healthcare Portal. All rights reserved.</p>
+        <p class="text-teal-100 text-base">© <?php echo date("Y"); ?> Medicare. All rights reserved.</p>
       </div>
     </div>
   </footer>
